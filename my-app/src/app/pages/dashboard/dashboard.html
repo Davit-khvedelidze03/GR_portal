@@ -1,0 +1,105 @@
+<section class="dashboard">
+  <div class="dashboard__header">
+    <div class="dashboard__greeting">
+      <button class="dashboard__back" type="button" aria-label="უკან">←</button>
+      <div>
+        @if (employee(); as user) {
+          <h1>გამარჯობა, {{ firstName(user.name) }}</h1>
+          <p class="dashboard__email">{{ user.email }}</p>
+        } @else {
+          <h1>გამარჯობა</h1>
+        }
+        <p class="dashboard__meta">{{ formattedDate }} • {{ formattedTime }}</p>
+      </div>
+    </div>
+
+    <div class="dashboard__rings">
+      <div class="ring">
+        <div class="ring__fill" [style.background]="ringGradient(leaveDaysUsed, leaveDaysTotal, 'var(--color-primary)')">
+          <div class="ring__hole">
+            <strong>{{ leaveDaysTotal }}</strong>
+          </div>
+        </div>
+        <span class="ring__label">შვებულება<br>{{ leaveDaysUsed }}/{{ leaveDaysTotal }} გამოყენებული</span>
+      </div>
+
+      <div class="ring">
+        <div class="ring__fill" [style.background]="ringGradient(dayOffUsed, dayOffTotal, 'var(--color-accent)')">
+          <div class="ring__hole">
+            <strong>{{ dayOffTotal - dayOffUsed }}</strong>
+          </div>
+        </div>
+        <span class="ring__label">დასვენების დღე<br>{{ dayOffUsed }}/{{ dayOffTotal }} დარჩენილი</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard__grid">
+    <div class="card">
+      <div class="card__header">
+        <h2>📋 დღევანდელი შეხვედრები</h2>
+        <a routerLink="/meeting-rooms" class="card__link">ყველა ›</a>
+      </div>
+      <ul class="meeting-list">
+        @for (b of todayMeetings(); track b.id) {
+          <li class="meeting-item">
+            <div>
+              <p class="meeting-item__title">{{ b.title }}</p>
+              <p class="meeting-item__meta">
+                {{ time(b.startTime) }}–{{ time(b.endTime) }} • {{ roomName(b.roomId) }}
+              </p>
+            </div>
+            <span class="badge"
+                  [class.badge--approved]="b.status === 'Approved'"
+                  [class.badge--pending]="b.status === 'Pending'">
+              {{ b.status === 'Approved' ? 'დამტკიცებული' : 'მოლოდინში' }}
+            </span>
+          </li>
+        } @empty {
+          <li class="card__empty">დღეს შეხვედრები არ გაქვთ</li>
+        }
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card__header">
+        <h2>🗂️ აქტიური მოთხოვნები</h2>
+        <a href="#" class="card__link">ყველა ›</a>
+      </div>
+      @if (requests.length === 0) {
+        <p class="card__empty">დღეს მოთხოვნები არ გაქვთ</p>
+      } @else {
+        <ul class="meeting-list">
+          @for (r of requests; track r.title) {
+            <li class="meeting-item">
+              <div>
+                <p class="meeting-item__title">{{ r.title }}</p>
+                <p class="meeting-item__meta">გაგზავნილია {{ r.submittedOn }}</p>
+              </div>
+              <span class="badge badge--pending">მოლოდინში</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+
+  <div class="dashboard__stats">
+    @for (tile of statTiles; track tile.label) {
+      <div class="stat-tile">
+        <div class="stat-tile__label">
+          <span>{{ tile.icon }}</span>
+          <span>{{ tile.label }}</span>
+        </div>
+        <div class="stat-tile__value">
+          <strong>{{ tile.total - tile.used }}</strong>
+          <span>/ {{ tile.total }} დღე დარჩენილი</span>
+        </div>
+        <div class="stat-tile__bar">
+          <div class="stat-tile__bar-fill" [style.width.%]="progressPct(tile.used, tile.total)"></div>
+        </div>
+        <span class="stat-tile__used">გამოყენებულია: {{ tile.used }} დღე</span>
+      </div>
+    }
+  </div>
+</section>

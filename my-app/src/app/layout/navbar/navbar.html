@@ -1,0 +1,29 @@
+<header class="navbar">
+  <div class="navbar__inner">
+    <a class="navbar__brand" href="#">
+      <span class="navbar__logo">GR</span>
+      <span class="navbar__brand-text">GR <span class="navbar__brand-accent">Portal</span></span>
+    </a>
+
+    <nav class="navbar__links">
+      @for (link of navLinks; track link.label) {
+        <a class="navbar__link" href="#">
+          {{ link.label }}
+          @if (link.hasDropdown) {
+            <span class="navbar__chevron">⌄</span>
+          }
+        </a>
+      }
+    </nav>
+
+    @if (employee(); as user) {
+      <div class="navbar__profile">
+        <div class="navbar__avatar">{{ initials(user.name) }}</div>
+        <div class="navbar__profile-text">
+          <span class="navbar__profile-name">{{ user.name }}</span>
+          <span class="navbar__profile-role">{{ user.position }}</span>
+        </div>
+      </div>
+    }
+  </div>
+</header>

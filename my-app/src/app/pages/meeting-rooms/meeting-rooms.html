@@ -1,0 +1,208 @@
+<section class="rooms-page">
+  <!-- სათაური -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <a class="back-link" routerLink="/">
+        <app-icon name="arrow-left" [size]="20" />
+        <span>უკან</span>
+      </a>
+      <div>
+        <h1>შეხვედრების ოთახი</h1>
+        <p class="page-header__sub">ოთახების დაჯავშნა</p>
+      </div>
+    </div>
+    <button class="btn btn--primary" type="button" (click)="openBooking()">
+      <app-icon name="plus" />
+      ახალი ჯავშანი
+    </button>
+  </div>
+
+  <!-- ტაბები -->
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" class="tabs__item" [class.tabs__item--active]="activeTab() === 'rooms'"
+            (click)="activeTab.set('rooms')">
+      <app-icon name="door" /> ოთახების სია
+    </button>
+    <button type="button" role="tab" class="tabs__item" [class.tabs__item--active]="activeTab() === 'approval'"
+            (click)="activeTab.set('approval')">
+      <app-icon name="shield" /> დადასტურება
+      @if (pendingBookings().length) {
+        <span class="tabs__count">{{ pendingBookings().length }}</span>
+      }
+    </button>
+  </div>
+
+  @if (loading()) {
+    <p class="state">იტვირთება…</p>
+  } @else if (loadError()) {
+    <div class="state state--error">
+      <p>{{ loadError() }}</p>
+      <button class="btn btn--ghost" type="button" (click)="loadAll()">თავიდან ცდა</button>
+    </div>
+  } @else {
+    @switch (activeTab()) {
+      @case ('rooms') {
+        <div class="room-grid">
+          @for (room of rooms(); track room.id) {
+            <article class="room-card">
+              <div class="room-card__head">
+                <h3>{{ room.name }}</h3>
+                @if (isRoomBusy(room)) {
+                  <span class="pill pill--busy">დაკავებული</span>
+                } @else {
+                  <span class="pill pill--free">თავისუფალი</span>
+                }
+              </div>
+
+              <ul class="room-card__info">
+                <li><app-icon name="pin" /> {{ room.location }}</li>
+                <li><app-icon name="users" /> {{ room.capacity }} ადამიანი</li>
+                <li><app-icon name="monitor" /> {{ room.equipment.join(' · ') }}</li>
+                <li class="room-card__today">
+                  <app-icon name="clock" [size]="16" />
+                  @if (nextBookingToday(room); as next) {
+                    შემდეგი: {{ time(next.startTime) }}-{{ time(next.endTime) }}
+                  } @else {
+                    დღეს ჯავშნები არ არის
+                  }
+                </li>
+              </ul>
+
+              <button class="btn btn--primary btn--block" type="button" (click)="openBooking(room)">დაჯავშნა</button>
+            </article>
+          }
+        </div>
+      }
+
+      @case ('approval') {
+        @if (pendingBookings().length === 0) {
+          <div class="panel"><p class="empty">დასადასტურებელი ჯავშნები არ არის</p></div>
+        } @else {
+          <div class="approval-list">
+            @for (b of pendingBookings(); track b.id) {
+              <article class="approval-card">
+                <div class="approval-card__body">
+                  <h3>{{ b.title }}</h3>
+                  <ul class="approval-card__meta">
+                    <li><app-icon name="door" [size]="16" /> {{ roomName(b.roomId) }}</li>
+                    <li><app-icon name="calendar" [size]="16" /> {{ formatDate(b.date) }}, {{ time(b.startTime) }}–{{ time(b.endTime) }}</li>
+                    <li><app-icon name="users" [size]="16" /> {{ employeeName(b.organizerId) }} + {{ b.participantIds.length }} მონაწილე</li>
+                  </ul>
+                </div>
+                <div class="approval-card__actions">
+                  <button class="btn btn--ghost btn--danger" type="button" (click)="reject(b)">უარყოფა</button>
+                  <button class="btn btn--primary" type="button" (click)="approve(b)">დადასტურება</button>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      }
+    }
+
+    <!-- ჩემი შეხვედრები -->
+    <div class="panel my-meetings">
+      <h2><app-icon name="calendar" /> ჩემი შეხვედრები</h2>
+      @if (myBookings().length === 0) {
+        <p class="empty">დაგეგმილი შეხვედრები არ გაქვთ</p>
+      } @else {
+        <ul class="my-list">
+          @for (b of myBookings(); track b.id) {
+            <li class="my-item">
+              <div class="my-item__main">
+                <div class="my-item__title">
+                  <strong>{{ b.title }}</strong>
+                  <span class="pill pill--neutral">{{ isOrganizer(b) ? 'ორგანიზატორი' : 'მიწვეული' }}</span>
+                  <span class="pill" [class.pill--free]="b.status === 'Approved'" [class.pill--pending]="b.status === 'Pending'">
+                    {{ statusLabel(b.status) }}
+                  </span>
+                </div>
+                <p class="my-item__meta">
+                  {{ formatDate(b.date) }} · {{ time(b.startTime) }}–{{ time(b.endTime) }} · {{ roomName(b.roomId) }}
+                  @if (!isOrganizer(b)) { · ორგანიზატორი: {{ employeeName(b.organizerId) }} }
+                </p>
+              </div>
+              @if (isOrganizer(b)) {
+                <button class="btn btn--ghost btn--sm" type="button" (click)="cancel(b)">გაუქმება</button>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</section>
+
+<!-- დაჯავშნის მოდალი -->
+@if (modalOpen()) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="booking-title" (click)="$event.stopPropagation()">
+      <div class="modal__head">
+        <h2 id="booking-title">ახალი ჯავშანი</h2>
+        <button class="icon-btn" type="button" (click)="closeModal()" aria-label="დახურვა"><app-icon name="x" /></button>
+      </div>
+
+      <form class="modal__body" (ngSubmit)="submitBooking()">
+        <label class="field">
+          <span>შეხვედრის სათაური *</span>
+          <input name="title" [(ngModel)]="form.title" required maxlength="120" placeholder="მაგ. გუნდური შეხვედრა" />
+        </label>
+
+        <label class="field">
+          <span>ოთახი *</span>
+          <select name="roomId" [(ngModel)]="form.roomId" required>
+            <option [ngValue]="null" disabled>აირჩიეთ ოთახი</option>
+            @for (room of rooms(); track room.id) {
+              <option [ngValue]="room.id">{{ room.name }} ({{ room.capacity }} ად.)</option>
+            }
+          </select>
+        </label>
+        @if (selectedRoom()?.requiresApproval) {
+          <p class="hint">ამ ოთახის ჯავშანი საჭიროებს ადმინისტრატორის დადასტურებას.</p>
+        }
+
+        <div class="field-row">
+          <label class="field">
+            <span>თარიღი *</span>
+            <input type="date" name="date" [(ngModel)]="form.date" [min]="todayIso" required />
+          </label>
+          <label class="field">
+            <span>დაწყება *</span>
+            <input type="time" name="startTime" [(ngModel)]="form.startTime" required />
+          </label>
+          <label class="field">
+            <span>დასრულება *</span>
+            <input type="time" name="endTime" [(ngModel)]="form.endTime" required />
+          </label>
+        </div>
+
+        <fieldset class="field">
+          <span>მონაწილეები</span>
+          <div class="chips">
+            @for (e of otherEmployees(); track e.id) {
+              <button type="button" class="chip" [class.chip--on]="form.participantIds.includes(e.id)"
+                      (click)="toggleParticipant(e.id)">
+                {{ e.name }}
+              </button>
+            }
+          </div>
+        </fieldset>
+
+        @if (formError()) {
+          <p class="form-error">{{ formError() }}</p>
+        }
+
+        <div class="modal__foot">
+          <button class="btn btn--ghost" type="button" (click)="closeModal()">გაუქმება</button>
+          <button class="btn btn--primary" type="submit" [disabled]="saving()">
+            {{ saving() ? 'ინახება…' : 'დაჯავშნა' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (toast()) {
+  <div class="toast" role="status">{{ toast() }}</div>
+}
