@@ -7,23 +7,58 @@
 
     <nav class="navbar__links">
       @for (link of navLinks; track link.label) {
-        <a class="navbar__link" href="#">
-          {{ link.label }}
-          @if (link.hasDropdown) {
-            <span class="navbar__chevron">⌄</span>
-          }
-        </a>
+        @if (link.path) {
+          <a class="navbar__link" [routerLink]="link.path"
+             routerLinkActive="navbar__link--active" [routerLinkActiveOptions]="{ exact: link.path === '/' }">
+            {{ link.label }}
+          </a>
+        } @else {
+          <a class="navbar__link" href="#">
+            {{ link.label }}
+            @if (link.hasDropdown) {
+              <span class="navbar__chevron">⌄</span>
+            }
+          </a>
+        }
       }
     </nav>
 
     @if (employee(); as user) {
       <div class="navbar__profile">
-        <div class="navbar__avatar">{{ initials(user.name) }}</div>
+        <button type="button" class="navbar__avatar"
+                aria-label="ფოტოს გადიდება" aria-haspopup="dialog"
+                (click)="openPhoto()">
+          @if (photoSrc(); as src) {
+            <img [src]="src" alt="" />
+          } @else {
+            {{ initials(user.name) }}
+          }
+        </button>
         <div class="navbar__profile-text">
           <span class="navbar__profile-name">{{ user.name }}</span>
           <span class="navbar__profile-role">{{ user.position }}</span>
         </div>
       </div>
+
+      <dialog #photoDialog class="photo-view" [attr.aria-label]="user.name"
+              (click)="onDialogClick($event)">
+        <button type="button" class="photo-view__close" aria-label="დახურვა"
+                (click)="closePhoto()">
+          <app-icon name="x" [size]="22" />
+        </button>
+
+        <figure class="photo-view__figure">
+          @if (photoSrc(); as src) {
+            <img class="photo-view__img" [src]="src" [alt]="user.name" />
+          } @else {
+            <div class="photo-view__initials">{{ initials(user.name) }}</div>
+          }
+          <figcaption class="photo-view__caption">
+            <strong>{{ user.name }}</strong>
+            <span>{{ user.position }}</span>
+          </figcaption>
+        </figure>
+      </dialog>
     }
   </div>
 </header>

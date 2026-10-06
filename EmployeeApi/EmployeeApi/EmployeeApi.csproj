@@ -4,6 +4,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>46a0357e-4338-4973-9843-3907ba035e5a</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,7 +13,11 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
           <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.9" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="wwwroot\uploads\employees\" />
     </ItemGroup>
 
 </Project>

@@ -9,7 +9,7 @@ builder.Services
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("Default")!));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")!));
 builder.Services.AddOpenApi();
 builder.Services.AddAuthorization();
 
@@ -31,6 +31,8 @@ if (app.Environment.IsDevelopment())
 }
 
 //app.UseHttpsRedirection();
+
+app.UseStaticFiles();
 
 app.UseCors();
 

@@ -3,6 +3,7 @@ using System;
 using EmployeeApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -17,7 +18,9 @@ namespace EmployeeApi.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "10.0.9")
-                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("EmployeeApi.Models.Booking", b =>
                 {
@@ -25,13 +28,15 @@ namespace EmployeeApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateOnly>("Date")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Date")
                         .HasColumnType("date");
 
-                    b.Property<TimeOnly>("EndTime")
+                    b.Property<TimeSpan>("EndTime")
                         .HasColumnType("time");
 
                     b.Property<int>("OrganizerId")
@@ -40,18 +45,18 @@ namespace EmployeeApi.Migrations
                     b.Property<int>("RoomId")
                         .HasColumnType("int");
 
-                    b.Property<TimeOnly>("StartTime")
+                    b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("varchar(20)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("varchar(120)");
+                        .HasColumnType("nvarchar(120)");
 
                     b.HasKey("Id");
 
@@ -73,11 +78,74 @@ namespace EmployeeApi.Migrations
                     b.ToTable("BookingParticipants");
                 });
 
+            modelBuilder.Entity("EmployeeApi.Models.Employee", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PhotoFileName")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Position")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("ShowPhotoInDirectory")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Employees");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Email = "davit.khvedelidze@example.com",
+                            Name = "Davit Khvedelidze",
+                            Position = "Manager",
+                            ShowPhotoInDirectory = true
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Email = "giorgi.beridze@example.com",
+                            Name = "Giorgi Beridze",
+                            Position = "Developer",
+                            ShowPhotoInDirectory = true
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Email = "nino.kapanadze@example.com",
+                            Name = "Nino Kapanadze",
+                            Position = "Designer",
+                            ShowPhotoInDirectory = true
+                        });
+                });
+
             modelBuilder.Entity("EmployeeApi.Models.MeetingRoom", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("Capacity")
                         .HasColumnType("int");
@@ -85,20 +153,20 @@ namespace EmployeeApi.Migrations
                     b.Property<string>("Equipment")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("RequiresApproval")
-                        .HasColumnType("tinyint(1)");
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -112,7 +180,7 @@ namespace EmployeeApi.Migrations
                             Equipment = "პროექტორი;ეკრანი;კონფერენც ტელეფონი;თეთრი დაფა;Wi-Fi",
                             Location = "IV სართული",
                             Name = "შეხვედრის ოთახი ცენტრალური",
-                            RequiresApproval = false
+                            RequiresApproval = true
                         },
                         new
                         {
@@ -121,7 +189,7 @@ namespace EmployeeApi.Migrations
                             Equipment = "TV ეკრანი;ფლიპჩარტი;Wi-Fi",
                             Location = "III სართული",
                             Name = "შეხვედრის ოთახი სატვირთო",
-                            RequiresApproval = false
+                            RequiresApproval = true
                         },
                         new
                         {
@@ -152,6 +220,310 @@ namespace EmployeeApi.Migrations
                         });
                 });
 
+            modelBuilder.Entity("EmployeeApi.Models.Pass", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("InitiatorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("IssuedDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Room")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("VisitDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InitiatorId");
+
+                    b.HasIndex("VisitDate");
+
+                    b.ToTable("Passes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2026, 10, 2, 9, 0, 0, 0, DateTimeKind.Utc),
+                            InitiatorId = 2,
+                            Purpose = "გაცნობითი შეხვედრა",
+                            Room = "101",
+                            Status = "Pending",
+                            VisitDate = new DateTime(2026, 10, 9, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2026, 10, 1, 11, 30, 0, 0, DateTimeKind.Utc),
+                            InitiatorId = 1,
+                            Purpose = "ტექნიკური კონსულტაცია",
+                            Room = "203",
+                            Status = "Pending",
+                            VisitDate = new DateTime(2026, 10, 7, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2026, 9, 30, 8, 15, 0, 0, DateTimeKind.Utc),
+                            InitiatorId = 3,
+                            IssuedDate = new DateTime(2026, 10, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Purpose = "გასაუბრება",
+                            Room = "305",
+                            Status = "Issued",
+                            VisitDate = new DateTime(2026, 10, 6, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2026, 9, 29, 14, 0, 0, 0, DateTimeKind.Utc),
+                            InitiatorId = 2,
+                            IssuedDate = new DateTime(2026, 10, 3, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Purpose = "გაცნობითი შეხვედრა",
+                            Room = "101",
+                            Status = "Issued",
+                            VisitDate = new DateTime(2026, 10, 3, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedAt = new DateTime(2026, 9, 24, 10, 0, 0, 0, DateTimeKind.Utc),
+                            InitiatorId = 1,
+                            IssuedDate = new DateTime(2026, 9, 29, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Purpose = "პარტნიორთან შეხვედრა",
+                            Room = "402",
+                            Status = "Completed",
+                            VisitDate = new DateTime(2026, 9, 29, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CreatedAt = new DateTime(2026, 9, 17, 12, 45, 0, 0, DateTimeKind.Utc),
+                            InitiatorId = 3,
+                            IssuedDate = new DateTime(2026, 9, 22, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Purpose = "აუდიტი",
+                            Room = "203",
+                            Status = "Completed",
+                            VisitDate = new DateTime(2026, 9, 22, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CreatedAt = new DateTime(2026, 9, 15, 9, 20, 0, 0, DateTimeKind.Utc),
+                            InitiatorId = 2,
+                            Purpose = "მომწოდებელთან შეხვედრა",
+                            Room = "101",
+                            Status = "Cancelled",
+                            VisitDate = new DateTime(2026, 9, 18, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
+                });
+
+            modelBuilder.Entity("EmployeeApi.Models.PassVisitor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CardNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsCompanion")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("PassId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("PassIssued")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PersonalNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Residency")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PassId");
+
+                    b.ToTable("PassVisitors");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DocumentType = "IdCard",
+                            FullName = "ანა მელაძე",
+                            IsCompanion = false,
+                            PassId = 1,
+                            PassIssued = false,
+                            PersonalNumber = "01024056789",
+                            Residency = "Resident"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            DocumentType = "IdCard",
+                            FullName = "ლევან ჯაფარიძე",
+                            IsCompanion = true,
+                            Note = "თანმხლები პირი",
+                            PassId = 1,
+                            PassIssued = false,
+                            PersonalNumber = "01001023456",
+                            Residency = "Resident"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            DocumentType = "InternationalPassport",
+                            FullName = "John Smith",
+                            IsCompanion = false,
+                            PassId = 1,
+                            PassIssued = false,
+                            PersonalNumber = "GB5521873",
+                            Residency = "NonResident"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            DocumentType = "IdCard",
+                            FullName = "თამარ ნოზაძე",
+                            IsCompanion = false,
+                            PassId = 2,
+                            PassIssued = false,
+                            PersonalNumber = "61004011223",
+                            Residency = "Resident"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CardNumber = "V-0142",
+                            DocumentType = "IdCard",
+                            FullName = "საბა კიკნაძე",
+                            IsCompanion = false,
+                            PassId = 3,
+                            PassIssued = true,
+                            PersonalNumber = "35001098765",
+                            Residency = "Resident"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CardNumber = "V-0143",
+                            DocumentType = "IdCard",
+                            FullName = "მარიამ ხუციშვილი",
+                            IsCompanion = true,
+                            Note = "თანმხლები პირი",
+                            PassId = 3,
+                            PassIssued = true,
+                            PersonalNumber = "01017034512",
+                            Residency = "Resident"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CardNumber = "V-0139",
+                            DocumentType = "InternationalPassport",
+                            FullName = "Elena Rossi",
+                            IsCompanion = false,
+                            PassId = 4,
+                            PassIssued = true,
+                            PersonalNumber = "YA8830214",
+                            Residency = "NonResident"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CardNumber = "V-0127",
+                            DocumentType = "IdCard",
+                            FullName = "გიორგი ლომიძე",
+                            IsCompanion = false,
+                            PassId = 5,
+                            PassIssued = true,
+                            PersonalNumber = "01008045671",
+                            Residency = "Resident"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CardNumber = "V-0118",
+                            DocumentType = "IdCard",
+                            FullName = "ნათია ბერიძე",
+                            IsCompanion = false,
+                            PassId = 6,
+                            PassIssued = true,
+                            PersonalNumber = "01019062234",
+                            Residency = "Resident"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CardNumber = "V-0119",
+                            DocumentType = "IdCard",
+                            FullName = "დავით ცერცვაძე",
+                            IsCompanion = false,
+                            PassId = 6,
+                            PassIssued = true,
+                            PersonalNumber = "01027011890",
+                            Residency = "Resident"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            DocumentType = "IdCard",
+                            FullName = "ირაკლი გოგოლაძე",
+                            IsCompanion = false,
+                            Note = "ვიზიტი გადაიდო",
+                            PassId = 7,
+                            PassIssued = false,
+                            PersonalNumber = "01031077432",
+                            Residency = "Resident"
+                        });
+                });
+
             modelBuilder.Entity("EmployeeApi.Models.Booking", b =>
                 {
                     b.HasOne("EmployeeApi.Models.MeetingRoom", null)
@@ -170,9 +542,32 @@ namespace EmployeeApi.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("EmployeeApi.Models.Pass", b =>
+                {
+                    b.HasOne("EmployeeApi.Models.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("InitiatorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EmployeeApi.Models.PassVisitor", b =>
+                {
+                    b.HasOne("EmployeeApi.Models.Pass", null)
+                        .WithMany("Visitors")
+                        .HasForeignKey("PassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("EmployeeApi.Models.Booking", b =>
                 {
                     b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("EmployeeApi.Models.Pass", b =>
+                {
+                    b.Navigation("Visitors");
                 });
 #pragma warning restore 612, 618
         }

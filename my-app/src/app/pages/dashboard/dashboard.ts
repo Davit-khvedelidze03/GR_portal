@@ -1,17 +1,12 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {forkJoin} from 'rxjs';
-import { EmployeeService, Employee} from '../../services/employee';
+import { EmployeeService } from '../../services/employee';
 import { Booking, MeetingRoom, MeetingService} from '../../services/meeting';
+import { Pass, PassService } from '../../services/pass';
 import { toIsoDate } from '../../shared/utils/date';
+import { PhotoManager } from '../../shared/photo-manager/photo-manager';
 
-
-
-
-interface RequestItem {
-  title: string;
-  submittedOn: string;
-}
 
 interface StatTile {
   label: string;
@@ -22,18 +17,20 @@ interface StatTile {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink],
+  imports: [RouterLink, PhotoManager],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
 export class Dashboard implements OnInit {
   private employeeService = inject(EmployeeService);
   private meetingService = inject(MeetingService);
+  private passService = inject(PassService);
 
   private readonly currrentUserId = 1;
 
   todayMeetings = signal<Booking[]>([]);
   rooms = signal<MeetingRoom[]>([]);
+  activeRequests = signal<Pass[]>([]);
 
   private today = new Date();
 
@@ -56,14 +53,24 @@ export class Dashboard implements OnInit {
     return this.today.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit' });
   }
 
-  employee = signal<Employee | null>(null);
+  employee = this.employeeService.current;
 
   ngOnInit() {
-    this.employeeService.getById(1).subscribe({
-      next: data => this.employee.set(data),
+    this.employeeService.loadCurrent(this.currrentUserId);
+    this.loadTodayMeetings();
+    this.loadActiveRequests();
+  }
+
+  private loadActiveRequests() {
+    this.passService.getAll().subscribe({
+      next: passes => this.activeRequests.set(
+        passes
+          .filter(p => p.initiatorId === this.currrentUserId
+                    && (p.status === 'Pending' || p.status === 'Issued'))
+          .sort((a, b) => a.visitDate.localeCompare(b.visitDate))
+      ),
       error: err => console.error('API error:', err)
     });
-    this.loadTodayMeetings();
   }
 
   private loadTodayMeetings() {
@@ -93,10 +100,6 @@ export class Dashboard implements OnInit {
 
 
 
-  requests: RequestItem[] = [
-    { title: 'დისტანციური მუშაობის მოთხოვნა', submittedOn: '18 სექტემბერს' },
-  ];
-
   statTiles: StatTile[] = [
     { label: 'ანაზღაურებადი შვებულება', icon: '🌴', used: 0, total: 24 },
     { label: 'არაანაზღაურებადი შვებულება', icon: '📄', used: 0, total: 15 },
@@ -124,5 +127,10 @@ export class Dashboard implements OnInit {
 
   time (t: string): string {
     return t.slice(0,5);
+  }
+
+  shortDate(iso: string): string {
+    const [, m, d] = iso.split('-').map(Number);
+    return `${d} ${this.georgianMonths[m - 1]}`;
   }
 }

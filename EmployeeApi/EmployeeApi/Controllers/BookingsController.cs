@@ -75,7 +75,7 @@ public class BookingsController(AppDbContext db) : ControllerBase
             return NotFound(new { message = "ოთახი ვერ მოიძებნა" });
 
         if (request.EndTime <= request.StartTime)
-            return BadRequest(new { message = "დასრულების დრო უნდა იყოს დაწყების დროზე გვიან" });
+            return BadRequest(new { message = "დასრულების დრო უნდა აღემატებოდეს დაწყების დროს" });
 
         if (request.Date.ToDateTime(request.StartTime) < DateTime.Now.AddMinutes(-1))
             return BadRequest(new { message = "წარსულ დროზე დაჯავშნა შეუძლებელია" });
@@ -140,7 +140,7 @@ public class BookingsController(AppDbContext db) : ControllerBase
 
         if (status == BookingStatus.Approved &&
             await HasConflictAsync(booking.RoomId, booking.Date, booking.StartTime, booking.EndTime, booking.Id))
-            return Conflict(new { message = "ამ დროს ოთახი უკვე სხვა ჯავშანს აქვს" });
+            return Conflict(new { message = "ამ დროს ოთახი უკვე დაჯავშნილია" });
 
         booking.Status = status;
         await db.SaveChangesAsync();   

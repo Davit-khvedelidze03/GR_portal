@@ -8,5 +8,5 @@ public class MeetingRoom
     public int Capacity { get; set; }
     public List<string> Equipment { get; set; } = new();
 
-    public bool RequiresApproval { get; set; }
+    public bool RequiresApproval { get; set; } = true;
 }

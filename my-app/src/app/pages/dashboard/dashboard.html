@@ -10,6 +10,9 @@
           <h1>გამარჯობა</h1>
         }
         <p class="dashboard__meta">{{ formattedDate }} • {{ formattedTime }}</p>
+        @if (employee(); as user) {
+          <app-photo-manager [employee]="user" />
+        }
       </div>
     </div>
 
@@ -64,23 +67,27 @@
     <div class="card">
       <div class="card__header">
         <h2>🗂️ აქტიური მოთხოვნები</h2>
-        <a href="#" class="card__link">ყველა ›</a>
+        <a routerLink="/passes" class="card__link">ყველა ›</a>
       </div>
-      @if (requests.length === 0) {
-        <p class="card__empty">დღეს მოთხოვნები არ გაქვთ</p>
-      } @else {
-        <ul class="meeting-list">
-          @for (r of requests; track r.title) {
-            <li class="meeting-item">
-              <div>
-                <p class="meeting-item__title">{{ r.title }}</p>
-                <p class="meeting-item__meta">გაგზავნილია {{ r.submittedOn }}</p>
-              </div>
-              <span class="badge badge--pending">მოლოდინში</span>
-            </li>
-          }
-        </ul>
-      }
+      <ul class="meeting-list">
+        @for (p of activeRequests(); track p.id) {
+          <li class="meeting-item">
+            <div>
+              <p class="meeting-item__title">საშვი #{{ p.id }} — {{ p.purpose }}</p>
+              <p class="meeting-item__meta">
+                ვიზიტი {{ shortDate(p.visitDate) }} • ოთახი {{ p.room }} • {{ p.visitors.length }} ვიზიტორი
+              </p>
+            </div>
+            <span class="badge"
+                  [class.badge--approved]="p.status === 'Issued'"
+                  [class.badge--pending]="p.status === 'Pending'">
+              {{ p.status === 'Issued' ? 'გაცემული' : 'გასაცემი' }}
+            </span>
+          </li>
+        } @empty {
+          <li class="card__empty">აქტიური მოთხოვნები არ გაქვთ</li>
+        }
+      </ul>
     </div>
   </div>
 
